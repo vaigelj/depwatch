@@ -68,6 +68,15 @@ func (s *Scanner) Scan() ([]Result, error) {
 	return results, err
 }
 
+// TotalDeps returns the total number of dependencies across all results.
+func TotalDeps(results []Result) int {
+	count := 0
+	for _, r := range results {
+		count += len(r.Deps)
+	}
+	return count
+}
+
 func recognise(name string) (string, bool) {
 	for _, f := range SupportedFiles {
 		if name == f {
