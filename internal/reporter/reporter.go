@@ -67,14 +67,20 @@ func (r *Reporter) writeJSON(rep Report) error {
 }
 
 func (r *Reporter) writeText(rep Report) error {
-	fmt.Fprintf(r.out, "depwatch report — %s\n", rep.GeneratedAt.Format(time.RFC3339))
-	fmt.Fprintf(r.out, "Total alerts: %d\n\n", rep.TotalAlerts)
+	if _, err := fmt.Fprintf(r.out, "depwatch report — %s\n", rep.GeneratedAt.Format(time.RFC3339)); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(r.out, "Total alerts: %d\n\n", rep.TotalAlerts); err != nil {
+		return err
+	}
 	if rep.TotalAlerts == 0 {
-		fmt.Fprintln(r.out, "No issues found.")
-		return nil
+		_, err := fmt.Fprintln(r.out, "No issues found.")
+		return err
 	}
 	for _, a := range rep.Alerts {
-		fmt.Fprintf(r.out, "[%s] %s @ %s — %s\n", a.Severity, a.Package, a.Version, a.Message)
+		if _, err := fmt.Fprintf(r.out, "[%s] %s @ %s — %s\n", a.Severity, a.Package, a.Version, a.Message); err != nil {
+			return err
+		}
 	}
 	return nil
 }
