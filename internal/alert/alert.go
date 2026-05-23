@@ -1,3 +1,5 @@
+// Package alert defines the Alert type and helpers for producing alerts from
+// dependency check results.
 package alert
 
 import (
@@ -8,45 +10,33 @@ import (
 	"github.com/user/depwatch/internal/checker"
 )
 
-// Level represents the severity of an alert.
-type Level int
-
+// Level constants describe alert severity.
 const (
-	LevelInfo     Level = iota
-	LevelWarn
-	LevelCritical
+	LevelClean    = "clean"
+	LevelWarn     = "warn"
+	LevelCritical = "critical"
 )
 
-func (l Level) String() string {
-	switch l {
-	case LevelWarn:
-		return "WARN"
-	case LevelCritical:
-		return "CRITICAL"
-	default:
-		return "INFO"
-	}
-}
-
-// Alert represents a single actionable finding for a dependency.
+// Alert represents a single actionable finding for one dependency.
 type Alert struct {
-	Package   string
-	Ecosystem string
-	Level     Level
-	Message   string
+	Package   string `json:"package"`
+	Ecosystem string `json:"ecosystem"`
+	Level     string `json:"level"`
+	Message   string `json:"message"`
 }
 
-// Alerter writes alerts to an output writer.
+// Alerter prints alerts to a configurable writer.
 type Alerter struct {
 	w io.Writer
 }
 
-// New returns an Alerter that writes to stdout.
+// New returns an Alerter that writes to os.Stdout.
 func New() *Alerter {
 	return &Alerter{w: os.Stdout}
 }
 
-// FromResults converts checker results into alerts, skipping clean deps.
+// FromResults converts checker results into a slice of Alerts, omitting clean
+// results unless they carry a vulnerability.
 func FromResults(results []checker.Result) []Alert {
 	var alerts []Alert
 	for _, r := range results {
@@ -56,7 +46,7 @@ func FromResults(results []checker.Result) []Alert {
 				Package:   r.Package,
 				Ecosystem: r.Ecosystem,
 				Level:     LevelCritical,
-				Message:   fmt.Sprintf("vulnerable: %s", r.Advisory),
+				Message:   fmt.Sprintf("vulnerable: %s", r.VulnID),
 			})
 		case r.Outdated:
 			alerts = append(alerts, Alert{
