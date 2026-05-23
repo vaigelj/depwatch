@@ -38,6 +38,9 @@ func NewWithBase(base string) *Fetcher {
 
 // FetchNPM returns the latest version string for an npm package.
 func (f *Fetcher) FetchNPM(pkg string) (string, error) {
+	if pkg == "" {
+		return "", fmt.Errorf("version: package name must not be empty")
+	}
 	url := fmt.Sprintf("%s/%s/latest", f.npmBase, pkg)
 	resp, err := f.client.Get(url)
 	if err != nil {
